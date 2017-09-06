@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Next Bus</title>
+<style>
+body {
+    margin: 0;
+}
+.place-bus {
+    margin: 20px auto;
+    padding: 0 20px;
+    max-width: 300px;
+    font-family: sans-serif;
+}
+
+.title {
+    display: inline-block;
+    background-color: #000;
+    color: #fff;
+    font-weight: bold;
+    padding: 10px;
+    font-size: 22px;
+}
+
+.minutes-to-next {
+    font-weight: bold;
+    font-size: 73px;
+    background-color: #eee;
+    padding: 10px 40px;
+    display: inline-block; 
+}
+
+.minutes-to-next span {
+    font-size: 26px;
+}
+
+.next-hours {
+    padding: 10px;
+    background-color: #DEDEDE;
+    display: inline-block;
+    font-size: 24px;
+}
+</style>
+</head>
+<body>
+    <script>
+    var placeBuses = [{title:"HB Terminal Boqueirão", hours:["05:15", "05:45", "05:55", "06:03", "06:13", "06:22", "06:31", "06:41", "06:50", "06:59", "07:09", "07:18", "07:27", "07:37", "07:46", "07:55", "08:05", "08:14", "08:23", "08:33", "08:42", "08:51", "09:19", "09:47", "10:15", "10:43", "11:11", "11:39", "11:53", "12:07", "12:21", "12:35", "12:49", "13:03", "13:17", "13:31", "13:45", "13:59", "14:27", "14:55", "15:23", "15:52", "16:21", "16:49", "17:01", "17:13", "17:25", "17:37", "17:49", "18:01", "18:13", "18:25", "18:37", "18:49", "19:01", "19:13", "19:25", "19:37", "19:49", "20:14", "20:39", "21:04", "21:29", "21:54", "22:22", "22:50", "23:10", "23:30", "23:50"]}];
+
+    var init = function() {
+        var body = document.body;
+        body.innerHTML = '';
+        body.onclick = refresh;
+
+        for (var index in placeBuses) {
+            var placeBus = placeBuses[index];
+            var nextBuses = getNextBuses(placeBus.hours);
+            var div = document.createElement('div');
+            div.innerHTML = '\
+                <div class="place-bus">\
+                    <div class="title">'+ placeBus.title +'</div>\
+                    <div class="minutes-to-next">'+ nextBuses.minutesToNextBus +'<span> min</span></div>\
+                    <div class="next-hours">'+ nextBuses.nextThreeBuses +'</div>\
+                </div>';
+            body.appendChild(div.children[0]);
+        }
+    }
+
+    var getNextBuses = function(hours) {
+        var now = new Date();
+        var thisHour = now.getHours() < 10 ? "0" + now.getHours() : now.getHours();
+        var thisMinute = now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes();
+        var thisHourAndMinutes = thisHour + ":" + thisMinute + "X";
+        hours.push(thisHourAndMinutes);
+        hours.sort();
+        var nowIdx = hours.indexOf(thisHourAndMinutes);
+        var nextHourAndMinutes = hours[nowIdx + 1] ? hours[nowIdx + 1].split(":") : hours[0];
+        var hourNextBus = parseInt(nextHourAndMinutes[0]);
+        var minutesNextBus = parseInt(nextHourAndMinutes[1]);
+        var nextBusDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hourNextBus, minutesNextBus, 0, 0);
+        var diff = Math.abs(nextBusDate - now);
+        console.log(now)
+        console.log(nextBusDate)
+        var minutes = Math.floor((diff/1000)/60);
+
+        return {
+            minutesToNextBus: minutes, 
+            nextThreeBuses: getNextTreeBuses(hours, nowIdx)
+        }
+    }
+
+    var getNextTreeBuses = function(hours, nowIdx) {
+        var nextBusesStr = "";
+
+        if (hours[nowIdx+1]) {
+            nextBusesStr = hours[nowIdx+1];
+            if(hours[nowIdx+2]) {
+                nextBusesStr += ", " + hours[nowIdx+2];
+                if(hours[nowIdx+3]) {
+                    nextBusesStr += ", " + hours[nowIdx+3];
+                    return nextBusesStr;
+                } else {
+                    return nextBusesStr + ", " + hours[0];
+                }
+            } else {
+                return nextBusesStr + ", " + hours[0]+", "+hours[1];
+            }
+        } else {
+            return hours[0]+", "+hours[1]+", "+hours[2];
+        }
+    }
+
+    var refresh = function() {
+        window.location = "";
+    }
+
+    init();
+    </script>
+</body>
+</html>
