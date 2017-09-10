@@ -7,12 +7,42 @@
 <style>
 body {
     margin: 0;
-}
-.place-bus {
-    margin: 20px auto;
-    padding: 0 20px;
-    max-width: 300px;
     font-family: sans-serif;
+}
+
+#bus-app {
+      max-width: 350px;
+      margin: 20px auto;
+}
+
+.btn {
+    background: #000;
+    color: #fff;
+    padding: 10px 15px;
+    font-size: 18px;
+    font-weight: bold;
+    float: right;
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+.btn.btn-plus {
+    margin: 0 20px;
+}
+
+.btn.btn-delete {
+    background-color: red;
+}
+
+.btn.btn-back {
+    float: left;
+    margin-left: 0;
+}
+
+.place-bus {
+    padding: 0 20px;
+    text-align: right;
+    margin-bottom: 30px;
 }
 
 .title {
@@ -42,29 +72,154 @@ body {
     display: inline-block;
     font-size: 24px;
 }
+.next-hours span {
+    background-color: #CECECE;
+    padding: 10px;
+    margin-right: -10px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+#bus-form {
+    margin: 20px;
+    position: absolute;
+    top: 0;
+}
+
+input[type=text] {
+    width: 100%;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    border: 3px solid #ccc;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+}
+
+input[type=text]:focus {
+    border: 3px solid #000;
+}
 </style>
 </head>
 <body>
+    <div id="bus-app">
+        <div id="bus-list"></div>
+        <div class="btn btn-plus" onclick="addBus()">+</div>
+        <div id="bus-form" class="hidden">
+            <input id="bus-title" type="text" placeholder="Título" />
+            <input id="bus-hours" type="text" placeholder="Horários separados por virgula" />
+            <div class="btn btn-back" onclick="refresh()"><</div>
+            <div class="btn" onclick="save()">save</div>
+            <div class="btn btn-delete" id="delete" onclick="del()">delete</div>
+        </div>
+    </div>
     <script>
-    var placeBuses = [{title:"HB Terminal Boqueirão", hours:["05:15", "05:45", "05:55", "06:03", "06:13", "06:22", "06:31", "06:41", "06:50", "06:59", "07:09", "07:18", "07:27", "07:37", "07:46", "07:55", "08:05", "08:14", "08:23", "08:33", "08:42", "08:51", "09:19", "09:47", "10:15", "10:43", "11:11", "11:39", "11:53", "12:07", "12:21", "12:35", "12:49", "13:03", "13:17", "13:31", "13:45", "13:59", "14:27", "14:55", "15:23", "15:52", "16:21", "16:49", "17:01", "17:13", "17:25", "17:37", "17:49", "18:01", "18:13", "18:25", "18:37", "18:49", "19:01", "19:13", "19:25", "19:37", "19:49", "20:14", "20:39", "21:04", "21:29", "21:54", "22:22", "22:50", "23:10", "23:30", "23:50"]}];
+
+    window.BUSES = null;
+    window.CURRENT_BUS = null;
 
     var init = function() {
-        var body = document.body;
-        body.innerHTML = '';
-        body.onclick = refresh;
+        initPlaceBuses();
 
-        for (var index in placeBuses) {
-            var placeBus = placeBuses[index];
-            var nextBuses = getNextBuses(placeBus.hours);
-            var div = document.createElement('div');
-            div.innerHTML = '\
+        var busList = document.getElementById("bus-list");
+
+        for (var index in window.BUSES) {
+            var bus = window.BUSES[index];
+            var hoursArray = hoursStringToArray(bus.hours);
+            var nextBuses = getNextBuses(hoursArray);
+            var busDiv = document.createElement('div');
+            busDiv.innerHTML = '\
                 <div class="place-bus">\
-                    <div class="title">'+ placeBus.title +'</div>\
+                    <div class="title">'+ bus.title +'</div>\
                     <div class="minutes-to-next">'+ nextBuses.minutesToNextBus +'<span> min</span></div>\
-                    <div class="next-hours">'+ nextBuses.nextThreeBuses +'</div>\
+                    <div class="next-hours">'+ nextBuses.nextThreeBuses +'<span onclick="editBus('+ index +')">⚙</span></div>\
                 </div>';
-            body.appendChild(div.children[0]);
+            busList.appendChild(busDiv.children[0]);
         }
+
+        //setInterval(refresh, 30 * 1000);
+    }
+
+    var initPlaceBuses = function() {
+        var data = localStorage["buses"];
+        if (data) {
+            window.BUSES = JSON.parse(data);
+        } else {
+            window.BUSES = [{title:"HB Terminal Boqueirão", hours:"05:15, 05:45, 05:55, 06:03, 06:13, 06:22, 06:31, 06:41, 06:50, 06:59, 07:09, 07:18, 07:27, 07:37, 07:46, 07:55, 08:05, 08:14, 08:23, 08:33, 08:42, 08:51, 09:19, 09:47, 10:15, 10:43, 11:11, 11:39, 11:53, 12:07, 12:21, 12:35, 12:49, 13:03, 13:17, 13:31, 13:45, 13:59, 14:27, 14:55, 15:23, 15:52, 16:21, 16:49, 17:01, 17:13, 17:25, 17:37, 17:49, 18:01, 18:13, 18:25, 18:37, 18:49, 19:01, 19:13, 19:25, 19:37, 19:49, 20:14, 20:39, 21:04, 21:29, 21:54, 22:22, 22:50, 23:10, 23:30, 23:50"}];
+        }
+    }
+
+    var addBus = function() {
+        hideDeleteBtn();
+        showBusForm();
+
+        window.CURRENT_BUS = null;
+        document.getElementById('bus-title').value = '';
+        document.getElementById('bus-hours').value = '';
+    }
+
+    var editBus = function(busIndex) {
+        showDeleteBtn();
+        showBusForm();
+
+        window.CURRENT_BUS = busIndex;
+        document.getElementById('bus-title').value = window.BUSES[busIndex].title;
+        document.getElementById('bus-hours').value = window.BUSES[busIndex].hours;
+    }
+
+    var del = function() {
+        if (confirm("Uma vez que deletar estará deletado para sempre!")) {
+            window.BUSES.splice(window.CURRENT_BUS, 1);
+            saveOnLocalStorage();
+            refresh();
+        }
+    }
+
+    var save = function() {
+        var title = document.getElementById('bus-title').value;
+        var hours = document.getElementById('bus-hours').value;
+
+        if (window.CURRENT_BUS !== null) {
+            window.BUSES[window.CURRENT_BUS].title = title;
+            window.BUSES[window.CURRENT_BUS].hours = hours;
+        } else {
+            var newBus = {};
+            newBus.title = title;
+            newBus.hours = hours;
+
+            window.BUSES.push(newBus);
+        }
+
+        saveOnLocalStorage();
+        refresh();
+    }
+
+    var saveOnLocalStorage = function() {
+        localStorage["buses"] = JSON.stringify(window.BUSES);
+    }
+
+    var hideDeleteBtn = function() {
+        document.getElementById('delete').classList.add('hidden');
+    }
+
+    var showDeleteBtn = function() {
+        document.getElementById('delete').classList.remove('hidden');
+    }
+
+    var showBusForm = function() {
+        document.getElementById('bus-list').classList.add('hidden');
+        document.getElementById('bus-form').classList.remove('hidden');
+    }
+
+    var hoursStringToArray = function(hoursStr) {
+        var hoursWithNoSpace = hoursStr.replace(/ /g, '');
+        var hoursArray = hoursWithNoSpace.split(",");
+        return hoursArray;
     }
 
     var getNextBuses = function(hours) {
@@ -80,8 +235,6 @@ body {
         var minutesNextBus = parseInt(nextHourAndMinutes[1]);
         var nextBusDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hourNextBus, minutesNextBus, 0, 0);
         var diff = Math.abs(nextBusDate - now);
-        console.log(now)
-        console.log(nextBusDate)
         var minutes = Math.floor((diff/1000)/60);
 
         return {
@@ -92,23 +245,18 @@ body {
 
     var getNextTreeBuses = function(hours, nowIdx) {
         var nextBusesStr = "";
+        var aux = 0;
 
-        if (hours[nowIdx+1]) {
-            nextBusesStr = hours[nowIdx+1];
-            if(hours[nowIdx+2]) {
-                nextBusesStr += ", " + hours[nowIdx+2];
-                if(hours[nowIdx+3]) {
-                    nextBusesStr += ", " + hours[nowIdx+3];
-                    return nextBusesStr;
-                } else {
-                    return nextBusesStr + ", " + hours[0];
-                }
+        for (var i = nowIdx; i < nowIdx + 3; i++) {
+            if (hours[i+1]) {
+                nextBusesStr = nextBusesStr ? nextBusesStr + ", " + hours[i+1] : hours[i+1];
             } else {
-                return nextBusesStr + ", " + hours[0]+", "+hours[1];
+                nextBusesStr = nextBusesStr ? nextBusesStr + ", " + hours[aux] : hours[aux];
+                aux++;
             }
-        } else {
-            return hours[0]+", "+hours[1]+", "+hours[2];
         }
+
+        return nextBusesStr;
     }
 
     var refresh = function() {
