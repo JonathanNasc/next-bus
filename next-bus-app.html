@@ -85,6 +85,7 @@ body {
 }
 
 #bus-form {
+    max-width: 350px;
     margin: 20px;
     position: absolute;
     top: 0;
@@ -109,7 +110,7 @@ input[type=text]:focus {
 <body>
     <div id="bus-app">
         <div id="bus-list"></div>
-        <div class="btn btn-plus" onclick="addBus()">+</div>
+        <div class="btn btn-plus" onclick="add()">+</div>
         <div id="bus-form" class="hidden">
             <input id="bus-title" type="text" placeholder="Título" />
             <input id="bus-hours" type="text" placeholder="Horários separados por virgula" />
@@ -120,16 +121,16 @@ input[type=text]:focus {
     </div>
     <script>
 
-    window.BUSES = null;
-    window.CURRENT_BUS = null;
+    window.buses = null;
+    window.currentBus = null;
 
     var init = function() {
-        initPlaceBuses();
+        initBuses();
 
         var busList = document.getElementById("bus-list");
 
-        for (var index in window.BUSES) {
-            var bus = window.BUSES[index];
+        for (var index in window.buses) {
+            var bus = window.buses[index];
             var hoursArray = hoursStringToArray(bus.hours);
             var nextBuses = getNextBuses(hoursArray);
             var busDiv = document.createElement('div');
@@ -137,7 +138,7 @@ input[type=text]:focus {
                 <div class="place-bus">\
                     <div class="title">'+ bus.title +'</div>\
                     <div class="minutes-to-next">'+ nextBuses.minutesToNextBus +'<span> min</span></div>\
-                    <div class="next-hours">'+ nextBuses.nextThreeBuses +'<span onclick="editBus('+ index +')">⚙</span></div>\
+                    <div class="next-hours">'+ nextBuses.nextThreeBuses +'<span onclick="edit('+ index +')">...</span></div>\
                 </div>';
             busList.appendChild(busDiv.children[0]);
         }
@@ -145,36 +146,36 @@ input[type=text]:focus {
         //setInterval(refresh, 30 * 1000);
     }
 
-    var initPlaceBuses = function() {
+    var initBuses = function() {
         var data = localStorage["buses"];
         if (data) {
-            window.BUSES = JSON.parse(data);
+            window.buses = JSON.parse(data);
         } else {
-            window.BUSES = [{title:"HB Terminal Boqueirão", hours:"05:15, 05:45, 05:55, 06:03, 06:13, 06:22, 06:31, 06:41, 06:50, 06:59, 07:09, 07:18, 07:27, 07:37, 07:46, 07:55, 08:05, 08:14, 08:23, 08:33, 08:42, 08:51, 09:19, 09:47, 10:15, 10:43, 11:11, 11:39, 11:53, 12:07, 12:21, 12:35, 12:49, 13:03, 13:17, 13:31, 13:45, 13:59, 14:27, 14:55, 15:23, 15:52, 16:21, 16:49, 17:01, 17:13, 17:25, 17:37, 17:49, 18:01, 18:13, 18:25, 18:37, 18:49, 19:01, 19:13, 19:25, 19:37, 19:49, 20:14, 20:39, 21:04, 21:29, 21:54, 22:22, 22:50, 23:10, 23:30, 23:50"}];
+            window.buses = [{title:"HB Terminal Boqueirão", hours:"05:15, 05:45, 05:55, 06:03, 06:13, 06:22, 06:31, 06:41, 06:50, 06:59, 07:09, 07:18, 07:27, 07:37, 07:46, 07:55, 08:05, 08:14, 08:23, 08:33, 08:42, 08:51, 09:19, 09:47, 10:15, 10:43, 11:11, 11:39, 11:53, 12:07, 12:21, 12:35, 12:49, 13:03, 13:17, 13:31, 13:45, 13:59, 14:27, 14:55, 15:23, 15:52, 16:21, 16:49, 17:01, 17:13, 17:25, 17:37, 17:49, 18:01, 18:13, 18:25, 18:37, 18:49, 19:01, 19:13, 19:25, 19:37, 19:49, 20:14, 20:39, 21:04, 21:29, 21:54, 22:22, 22:50, 23:10, 23:30, 23:50"}];
         }
     }
 
-    var addBus = function() {
+    var add = function() {
         hideDeleteBtn();
         showBusForm();
 
-        window.CURRENT_BUS = null;
+        window.currentBus = null;
         document.getElementById('bus-title').value = '';
         document.getElementById('bus-hours').value = '';
     }
 
-    var editBus = function(busIndex) {
+    var edit = function(busIndex) {
         showDeleteBtn();
         showBusForm();
 
-        window.CURRENT_BUS = busIndex;
-        document.getElementById('bus-title').value = window.BUSES[busIndex].title;
-        document.getElementById('bus-hours').value = window.BUSES[busIndex].hours;
+        window.currentBus = busIndex;
+        document.getElementById('bus-title').value = window.buses[busIndex].title;
+        document.getElementById('bus-hours').value = window.buses[busIndex].hours;
     }
 
     var del = function() {
         if (confirm("Uma vez que deletar estará deletado para sempre!")) {
-            window.BUSES.splice(window.CURRENT_BUS, 1);
+            window.buses.splice(window.currentBus, 1);
             saveOnLocalStorage();
             refresh();
         }
@@ -184,15 +185,15 @@ input[type=text]:focus {
         var title = document.getElementById('bus-title').value;
         var hours = document.getElementById('bus-hours').value;
 
-        if (window.CURRENT_BUS !== null) {
-            window.BUSES[window.CURRENT_BUS].title = title;
-            window.BUSES[window.CURRENT_BUS].hours = hours;
+        if (window.currentBus !== null) {
+            window.buses[window.currentBus].title = title;
+            window.buses[window.currentBus].hours = hours;
         } else {
             var newBus = {};
             newBus.title = title;
             newBus.hours = hours;
 
-            window.BUSES.push(newBus);
+            window.buses.push(newBus);
         }
 
         saveOnLocalStorage();
@@ -200,7 +201,7 @@ input[type=text]:focus {
     }
 
     var saveOnLocalStorage = function() {
-        localStorage["buses"] = JSON.stringify(window.BUSES);
+        localStorage["buses"] = JSON.stringify(window.buses);
     }
 
     var hideDeleteBtn = function() {
