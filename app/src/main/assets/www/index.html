@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Next Bus</title>
-<style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Next Bus</title>
+  <style>
 body {
     margin: 0;
     font-family: sans-serif;
@@ -12,7 +12,7 @@ body {
 
 #bus-app {
       max-width: 350px;
-      margin: 20px auto;
+      margin: 20px auto 0 auto;
 }
 
 .btn {
@@ -27,7 +27,7 @@ body {
 }
 
 .btn.btn-plus {
-    margin: 0 20px;
+    margin: 0 20px 20px 0;
 }
 
 .btn.btn-delete {
@@ -42,7 +42,7 @@ body {
 .place-bus {
     padding: 0 20px;
     text-align: right;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .title {
@@ -108,18 +108,18 @@ input[type=text]:focus {
 </style>
 </head>
 <body>
-    <div id="bus-app">
-        <div id="bus-list"></div>
-        <div class="btn btn-plus" onclick="add()">+</div>
-        <div id="bus-form" class="hidden">
-            <input id="bus-title" type="text" placeholder="Título" />
-            <input id="bus-hours" type="text" placeholder="Horários separados por virgula" />
-            <div class="btn btn-back" onclick="refresh()"><</div>
-            <div class="btn" onclick="save()">save</div>
-            <div class="btn btn-delete" id="delete" onclick="del()">delete</div>
-        </div>
-    </div>
-    <script>
+<div id="bus-app">
+  <div id="bus-list"></div>
+  <div class="btn btn-plus" onclick="add()">+</div>
+  <div id="bus-form" class="hidden">
+    <input id="bus-title" type="text" placeholder="Título" />
+    <input id="bus-hours" type="text" placeholder="Horários separados por virgula" />
+    <div class="btn btn-back" onclick="refresh()"><</div>
+    <div class="btn" onclick="save()">save</div>
+    <div class="btn btn-delete" id="delete" onclick="del()">delete</div>
+  </div>
+</div>
+<script>
 
     window.buses = null;
     window.currentBus = null;
@@ -143,7 +143,7 @@ input[type=text]:focus {
             busList.appendChild(busDiv.children[0]);
         }
 
-        //setInterval(refresh, 30 * 1000);
+        setInterval(refresh, 30 * 1000);
     }
 
     var initBuses = function() {
