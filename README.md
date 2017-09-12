@@ -1,10 +1,8 @@
 # App Next Bus
 A simple and universal app to check when the next bus (or train, ferry, etc) will pass. By Jonathan Nascimento
 
-### To make an Android App
-1. Clone this repository and open it on Android Studio
-2. Build -> Build APK
-3. Install the APK in your Android
+### To install in your Android
+Download and install the `next-bus.apk` file.
 
 ### To use it in other platforms
 
